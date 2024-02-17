@@ -578,3 +578,4 @@ C:\Users\fear8\Downloads\Repos\HarmoniousRenewal\obj\Release\win-x64\refint\Harm
 C:\Users\fear8\Downloads\Repos\HarmoniousRenewal\obj\Release\win-x64\HarmoniousRenewal.pdb
 C:\Users\fear8\Downloads\Repos\HarmoniousRenewal\obj\Release\win-x64\HarmoniousRenewal.genruntimeconfig.cache
 C:\Users\fear8\Downloads\Repos\HarmoniousRenewal\obj\Release\win-x64\ref\HarmoniousRenewal.dll
+C:\Users\fear8\Downloads\Repos\HarmoniousRenewal\obj\Release\win-x64\HarmoniousRenewal.sourcelink.json

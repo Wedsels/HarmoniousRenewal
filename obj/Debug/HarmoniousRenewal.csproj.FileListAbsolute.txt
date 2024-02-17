@@ -784,3 +784,4 @@ c:\Users\fear8\Downloads\Repos\HarmoniousRenewal\bin\HarmoniousRenewal\Harmoniou
 c:\Users\fear8\Downloads\Repos\HarmoniousRenewal\bin\HarmoniousRenewal\HarmoniousRenewal.dll
 c:\Users\fear8\Downloads\Repos\HarmoniousRenewal\bin\HarmoniousRenewal\HarmoniousRenewal.pdb
 c:\Users\fear8\Downloads\Repos\HarmoniousRenewal\bin\HarmoniousRenewal\SoulsFormats.dll
+c:\Users\fear8\Downloads\Repos\HarmoniousRenewal\obj\Debug\HarmoniousRenewal.sourcelink.json

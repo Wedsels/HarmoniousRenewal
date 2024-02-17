@@ -29,8 +29,24 @@ namespace HarmoniousRenewal
                 "correctType_Physics", "correctType_Magic", "correctType_Fire", "correctType_Thunder", "correctType_Dark", "correctType_Poison", "correctType_Blood", "correctType_Sleep", "correctType_Madness",
                 "attackElementCorrectId"] }
         };
+        
+        // !!! weapons that have blessed and stuff may not work
+        // all bows seem to have s ranke faith and int
+        // lightblades may be broken
 
+        // Maybe enable enemies to be enemies of different types other than themselves
 
+        // Make it so that weapons all scale with every stat for damage
+        // And maybe rever the stat scaling loop, so that the more invested returns the most
+        
+        // The stat jump from no affinity to an affinity is way to high
+        
+        // Probably write the randomly generated items to a seed, that's just really long
+        
+        // Maybe add in animation cancels for weapon swings themselves, since some have quite a long time of nothing after a swing
+
+        // Where is the ashes of war in the bonfire generated from, is there a way to add an ash of war to the selection if the player has an speffect, or maybe if the player is currently viewing the ashes of war for a certain weapon?
+        
         /// <summary>
         /// Random Item Generator
         /// Have a dictionary of effects, based on tiers and rarity
@@ -119,7 +135,7 @@ namespace HarmoniousRenewal
         // Maybe give the enemies that have good hearing, crazy good hearing but barely any eyesight, same for eyesight no hear enemy
 
         // need to make two hand buff mod
-
+        
         // Maybe introduce randomized loot for items that have no use, such as bad talismans or armor
 
         // add some WetSpEffectId00 in weatherparam to make fog and snow and stuff reduce visibility and such
@@ -133,8 +149,8 @@ namespace HarmoniousRenewal
 
 
         // !!!! -- to completely remove the need for backups and stuff, ask for the directory of the mod engine, then just add the folder wherever the files are written to the top of config_eldenring.toml
-
-
+        
+        
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // WEAPONS SPEFFECT OFFSET FOR +1 +2 ETC ENHANCE INCREMENTS THE SPEFFECT AS WELL, REMOVING THE NEEDED SPEFFECTS
@@ -145,7 +161,7 @@ namespace HarmoniousRenewal
         
         // No fix, need to find a way to make the effects fit into the behavior ids
         // If a weapon has innate bleed, then an affinity adds bleed, turn the innate bleed into a bonus in arcane
-
+        
         static void Main() {//dotnet publish -c Release -r win-x64
             try {
                 // Introduction
@@ -202,6 +218,7 @@ namespace HarmoniousRenewal
                         Common = EMEVD.Read(GamePath + "/event/common.emevd.dcx");
                     }
                 }
+                Console.WriteLine("\nPreparing Dictionaries And Definitions...");
                 WeaponNameFMG = FMG.Read(itemBND.Files[1].Bytes);
                 foreach (var Entry in WeaponNameFMG.Entries)
                     WeaponName.Add(Entry.ID, Entry);
@@ -249,16 +266,16 @@ namespace HarmoniousRenewal
                 // Starting time
                 double StartTime = GetTime();
                 // Start the mod
-                Console.WriteLine("\nScaling Weapons And Affinities... ");
+                Console.WriteLine("\nScaling Weapons And Affinities...");
                 ScaleWeapons();
-                Console.WriteLine("\nOverhauling Players, Enemies And Combat... ");
+                Console.WriteLine("\nOverhauling Players, Enemies And Combat...");
                 OverhaulCombat();
-                Console.WriteLine("\nSpicing Up Merchants And Weather... ");
+                Console.WriteLine("\nSpicing Up Merchants And Weather...");
                 WeatheredMerchants();
-                Console.WriteLine("\nEnabling And Unchaining Weapon Buffs... ");
+                Console.WriteLine("\nEnabling And Unchaining Weapon Buffs...");
                 BuffWeapons();
-                Console.WriteLine("\nGenerating Ashes Of War... ");
-                //AshOfWar();
+                Console.WriteLine("\nGenerating Ashes Of War...");
+                AshOfWar();
                 
                 // Write files
                 string WriteDirectory = Root + ModDate;
@@ -367,7 +384,7 @@ namespace HarmoniousRenewal
                 "function Update()");
             Player = Player.Replace("function Update()",
                 "function Update()\n" +
-                "    if (env(GetSpEffectID, AFFINITY_HARMONY[1]) == FALSE or env(GetSpEffectID, AFFINITY_HARMONY[2]) == FALSE) and (AFFINITY_HARMONY[1] ~= nil or AFFINITY_HARMONY[2] ~= nil) then\n" +
+                "    if env(GetSpEffectID, AFFINITY_HARMONY[1]) == FALSE or env(GetSpEffectID, AFFINITY_HARMONY[2]) == FALSE and WEAPON_HARMONY[2] ~= nil then\n" +
                 "        AFFINITY_HARMONY = {}\n" +
                 "        HarmonizeAffinity()\n" +
                 "    end\n");
@@ -462,7 +479,7 @@ namespace HarmoniousRenewal
                 "function Update()");
             Player = Player.Replace("function Update()",
                 "function Update()\n" +
-                "    if (env(GetSpEffectID, WEAPON_HARMONY[1]) == FALSE or env(GetSpEffectID, WEAPON_HARMONY[2]) == FALSE) and (WEAPON_HARMONY[1] ~= nil or WEAPON_HARMONY[2] ~= nil) then\n" +
+                "    if env(GetSpEffectID, WEAPON_HARMONY[1]) == FALSE or env(GetSpEffectID, WEAPON_HARMONY[2]) == FALSE and WEAPON_HARMONY[2] ~= nil then\n" +
                 "        WEAPON_HARMONY = {}\n" +
                 "        HarmonizeWeapon()\n" +
                 "    end\n");
@@ -571,16 +588,19 @@ namespace HarmoniousRenewal
                     PARAM.Row Affinity = Params["EquipParamWeapon"][Row.ID + i * 100];
                     string Name = Params["SpEffectParam"][SpEffinity[i - 1]].Name + " " + WeaponName[Row.ID].Text;
                     Affinity.Name = Name;
-                    Affinity["sortId"].Value = Value(Affinity["sortId"]) + i;
+                    Affinity["sortId"].Value = Value(Row["sortId"]) + i;
                     // Go through each extra and overwrite the affinity with it
                     for (int y = 0; y < Cache["Extras"].Length; y++)
                         if (Extras[i * 100][y] != -1)
                             Affinity[Cache["Extras"][y]].Value = Extras[i * 100][y];
                     // Deal with the affinity weapon damage, concatenated with scaling values
                     for (int y = 0; y < Cache["Damages"].Length; y++) {
+                        Affinity[Cache["Damages"][y]].Value = Value(Row[Cache["Damages"][y]]);
+                        Affinity["proper" + Cache["Stats"][y]].Value = Value(Row["proper" + Cache["Stats"][y]]);
+                        Affinity["correct" + Cache["Stats"][y]].Value = Value(Row["correct" + Cache["Stats"][y]]);
                         // Store some values for smaller code
-                        double damage = Value(Affinity[Cache["Damages"][y]]);
-                        double correct = Value(Affinity["correct" + Cache["Stats"][y]]);
+                        double damage = Value(Row[Cache["Damages"][y]]);
+                        double correct = Value(Row["correct" + Cache["Stats"][y]]);
                         double scale = Corrects[i * 100][y] / Corrects[i * 100].Sum();
                         // Scale weapon damage values, with a flat division to make out of use stats less tall
                         if (Damages[i * 100][y] != -1)
@@ -660,9 +680,9 @@ namespace HarmoniousRenewal
                     Affinity["residentSpEffectId1"].Value = SpEffinity[i - 1];
                     Affinity["spEffectMsgId1"].Value = -1;
                     Affinity["spEffectMsgId2"].Value = -1;
-                    // Spice up proper values
+                    // After scaling finished, remove some stat requirements from the weapon, so that they are usuable at lower levels
                     foreach (var Stat in Cache["Stats"])
-                        Affinity["proper" + Stat].Value = Value(Affinity["proper" + Stat]) / 2.25 + Value(Affinity["correct" + Stat]) / Overbase / 2.25;
+                        Affinity["proper" + Stat].Value = Value(Affinity["proper" + Stat]) / 4.55 + Value(Affinity["correct" + Stat]) / Overbase / 1.55;
                     // Spice up side values
                     void SpiceValue(string V1, string V2) => Affinity[V1].Value = Value(Row[V1]) + Value(Affinity[V2]) / 1.5;
                     SpiceValue("attackBaseStamina", "properStrength");
@@ -680,15 +700,11 @@ namespace HarmoniousRenewal
                     SpiceValue("freezeGuardResist", "properMagic");
                     SpiceValue("sleepGuardResist", "properMagic");
                     SpiceValue("madnessGuardResist", "properFaith");
-                    
-                    // After scaling finished, remove some stat requirements from the weapon, so that they are usuable at lower levels
-                    foreach (var Stat in Cache["Stats"])
-                        Affinity["proper" + Stat].Value = Value(Affinity["proper" + Stat]) / 3 + Value(Affinity["correct" + Stat]) / 5;
                 }
                 
                 // After scaling finished, remove some stat requirements from the weapon, so that they are usuable at lower levels
                 foreach (var Stat in Cache["Stats"])
-                    Row["proper" + Stat].Value = Value(Row["proper" + Stat]) / 2.25;
+                    Row["proper" + Stat].Value = Value(Row["proper" + Stat]) / 1.55;
             });
             // Make somber also go up to +25
             Params["EquipMtrlSetParam"][2208].ID = 2222;
@@ -778,7 +794,7 @@ namespace HarmoniousRenewal
             int L2 = Cooldown("L2Cooldown", 0.75);
             Player = Player.Replace(
                 "    if env(ActionRequest, ACTION_ARM_JUMP) == FALSE and env(700) == FALSE then",
-                "    if env(ActionRequest, ACTION_ARM_JUMP) == FALSE and env(700) == FALSE and (env(ActionCancelRequest, ACTION_ARM_JUMP) == FALSE or env(GetSpEffectID, " + Animation + ") == TRUE) or (env(ActionDuration, ACTION_ARM_L1) > 100 or env(IsBeingThrown) == TRUE or env(IsThrowing) == TRUE) then");
+                "    if (env(ActionCancelRequest, ACTION_ARM_JUMP) == FALSE and env(ActionRequest, ACTION_ARM_JUMP) == FALSE) and env(700) == FALSE or (env(ActionDuration, ACTION_ARM_L1) > 100 or env(IsBeingThrown) == TRUE or env(IsThrowing) == TRUE) then");
             Player = Player.Replace(
                 "function ExecEvasion(backstep_limit, estep, is_usechainrecover)\n" +
                 "    if c_HasActionRequest == FALSE",
@@ -819,8 +835,7 @@ namespace HarmoniousRenewal
                 }
             });
             // Change bullet mechanics
-            Params["Bullet"].Rows.ForEach(Row =>
-            {
+            Params["Bullet"].Rows.ForEach(Row => {
                 if (Row["sfxId_Hit"].Value.ToString() != "-1" && Row["maxVellocity"].Value.ToString() != "0" && Row["initVellocity"].Value.ToString() != "0" && Row["gravityInRange"].Value.ToString() != "0" && Row["dist"].Value.ToString() != "0" && Convert.ToDouble(Row["life"].Value) >= 1)
                 {
                     Row["life"].Value = Convert.ToDouble(Row["life"].Value) * 7.25;
@@ -930,7 +945,8 @@ namespace HarmoniousRenewal
         public static void AshOfWar() {
             // Starting time
             double StartTime = GetTime();
-            EMEVD.Event Event = CreateNewEvent(1029350000, [ new(2000, 2, (List<object>)[(byte)0])], 0, null, EMEVD.Event.RestBehaviorType.Restart);
+            Common.Events[0].Instructions.Add(new(1003, 1, [(byte)1, (sbyte)1, (sbyte)0, (uint)1029350000]));
+            EMEVD.Event Event = CreateNewEvent(1029350000, [ new(2000, 2, (List<object>)[(byte)0]), new(2003, 66, [(sbyte)0, (uint)1029350000, (sbyte)1])], 0);
             List<int> Occupied = [];
             int Count = 0;
             Params["EquipParamGem"].Rows.ForEach(Row => Occupied.Add(Convert.ToInt32(Row["swordArtsParamId"].Value)));
@@ -942,32 +958,26 @@ namespace HarmoniousRenewal
             });
 
             Params["SwordArtsParam"].Rows.ForEach(Row => {
-                if (!Occupied.Contains(Row.ID) && Value(Row["swordArtsType"]) > 0 && Row.ID >= 10) {
+                if (!Occupied.Contains(Row.ID) && Value(Row["artsSpeedType"]) > 0) {
                     Count++;
-                    Random random = new();
-                    PARAM.Row Gem = Params["EquipParamGem"][New(Params["EquipParamGem"], 9999999+Convert.ToInt32(Row["swordArtsType"].Value))];
+                    Occupied.Add(Row.ID);
+                    PARAM.Row Gem = Params["EquipParamGem"][New(Params["EquipParamGem"], 9999999-Row.ID)];
                     Gem["rarity"].Value = 3;
                     Gem["iconId"].Value = WeaponGems.TryGetValue(Row.ID, out int ID) ? Value(Params["EquipParamWeapon"][ID]["iconId"]) : Value(Row["iconId"]);
                     Gem["swordArtsParamId"].Value = Row.ID;
-                    Gem["sortGroupId"].Value = 225;
-                    Gem["sellValue"].Value = 500 * (random.NextDouble() * 10);
+                    Gem["sortGroupId"].Value = 254;
                     Gem["isDiscard"].Value = 1;
                     Gem["isDrop"].Value = 1;
                     Gem["isDeposit"].Value = 1;
-                    Gem["showDialogCondType"].Value = 2;
-                    Gem["showLogCondType"].Value = 1;
-                    int ItemLot = New(Params["ItemLotParam_map"]);
+                    Gem["showDialogCondType"].Value = 0;
+                    Gem["showLogCondType"].Value = 0;
+                    int ItemLot = New(Params["ItemLotParam_map"], 2000000000-Row.ID*20);
                     Params["ItemLotParam_map"][ItemLot]["lotItemId01"].Value = Gem.ID;
                     Params["ItemLotParam_map"][ItemLot]["lotItemCategory01"].Value = 5;
                     Params["ItemLotParam_map"][ItemLot]["lotItemNum01"].Value = 1;
                     Params["ItemLotParam_map"][ItemLot]["lotItemBasePoint01"].Value = 1000;
                     
-                    Event.Instructions.AddRange([
-                        new(3, 4, [(sbyte)-1, (sbyte)0, (int)(WeaponGems.TryGetValue(Row.ID, out int value) ? value : 110000), (sbyte)1]),
-                        new(1000, 1, [(byte)3, (byte)1, (sbyte)-1]),
-                        new(1003, 1, [(byte)2, (byte)1, (byte)0, (uint)(1029350000+Value(Row["swordArtsType"]))]),
-                        new(2003, 66, [(byte)0, (uint)(1029350000+Value(Row["swordArtsType"])), (byte)1]),
-                        new(2003, 4, (List<object>)[(int)ItemLot])]);
+                    Event.Instructions.Add(new(2003, 4, (List<object>)[(int)ItemLot]));
                 }
             });
             Params["EquipParamGem"].Rows.ForEach(Row => {
@@ -1010,7 +1020,7 @@ namespace HarmoniousRenewal
             if (Param[ID] == null)
                 return -1;
             if (Param[NID] != null)
-                Param.Rows.Remove(Param[NID]);
+                return NID;
             Param.Rows.Add(new(Param[ID]) { ID = NID });
             return NID;
         }
